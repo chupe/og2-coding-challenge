@@ -16,7 +16,7 @@ type UserHandler struct {
 
 func (handler *UserHandler) Get(c *fiber.Ctx) error {
 	id := c.Params("id")
-	User, err := handler.repository.Find(id)
+	user, err := handler.repository.Find(id)
 
 	if err != nil {
 		return c.Status(http.StatusNotFound).JSON(
@@ -28,19 +28,33 @@ func (handler *UserHandler) Get(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(response.UserResponse{
-		ID:       User.ID.String(),
-		Username: User.Username,
-		Iron:     User.GetIronOre(),
-		Copper:   User.GetCopperOre(),
-		Gold:     User.GetGoldOre(),
-		Created:  User.Created,
+		ID:       user.ID.String(),
+		Username: user.Username,
+		Iron:     user.GetIronOre(),
+		Copper:   user.GetCopperOre(),
+		Gold:     user.GetGoldOre(),
+		Created:  user.Created,
 	})
 }
 
-func (handler *UserHandler) GetDashboard(c *fiber.Ctx) error {
-	id := c.Params("id")
-	user, err := handler.repository.Find(id)
+type getUser struct {
+	// Full url
+	Username string `json:"username" validate:"required,alphanum" example:"exampleUsername"`
+} // @name CreateUserBody
 
+func (handler *UserHandler) GetDashboard(c *fiber.Ctx) error {
+	d := new(getUser)
+	err := c.BodyParser(d)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(
+			response.ErrorResponse{
+				Status:  http.StatusBadRequest,
+				Message: "Invalid JSON",
+				Error:   err.Error(),
+			})
+	}
+
+	user, err := handler.repository.FindByUsername(d.Username)
 	if err != nil {
 		return c.Status(http.StatusNotFound).JSON(
 			response.ErrorResponse{
@@ -160,5 +174,5 @@ func RegisterUserHandler(router fiber.Router, database *mongo.Client) {
 	UserRouter := router.Group("/user")
 	UserRouter.Get("/:id", userHandler.Get)
 	UserRouter.Post("/", userHandler.Create)
-	UserRouter.Post("/dashboard/:username", userHandler.GetDashboard)
+	UserRouter.Post("/dashboard", userHandler.GetDashboard)
 }

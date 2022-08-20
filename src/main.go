@@ -27,7 +27,7 @@ func main() {
 
 	controllers.RegisterHealthCheckHandler(app)
 
-	api := app.Group("/api")
+	api := app.Group("/")
 	controllers.RegisterUserHandler(api, database.DbClient())
 
 	log.Fatal(app.Listen(":5000"))
