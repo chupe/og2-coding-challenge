@@ -17,7 +17,7 @@ func initialize(client *mongo.Client) *mongo.Client {
 	_, err := collection.Indexes().CreateOne(
 		context.Background(),
 		mongo.IndexModel{
-			Keys:    bson.D{{Key: "code", Value: 1}},
+			Keys:    bson.D{{Key: "username", Value: 1}},
 			Options: options.Index().SetUnique(true),
 		},
 	)

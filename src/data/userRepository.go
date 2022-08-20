@@ -3,14 +3,11 @@ package data
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"time"
 
-	"github.com/chupe/og2-coding-challenge/domain"
 	"github.com/chupe/og2-coding-challenge/models"
-	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -60,13 +57,9 @@ func (r *UserRepository) Find(id string) (*models.User, error) {
 	return User, nil
 }
 
-func (r *UserRepository) FindByCode(code string) (*models.User, error) {
+func (r *UserRepository) FindByUsername(username string) (*models.User, error) {
 	var User *models.User
-	err := r.coll.FindOne(context.TODO(), bson.D{primitive.E{Key: "code", Value: code}}).Decode(&User)
-	if err != nil {
-		return nil, err
-	}
-	err = r.incrementHitCount(User.ID)
+	err := r.coll.FindOne(context.TODO(), bson.D{primitive.E{Key: "username", Value: username}}).Decode(&User)
 	if err != nil {
 		return nil, err
 	}
@@ -74,22 +67,13 @@ func (r *UserRepository) FindByCode(code string) (*models.User, error) {
 	return User, nil
 }
 
-func (r *UserRepository) Create(url string) (*models.User, error) {
+func (r *UserRepository) Create(username string) (*models.User, error) {
 	User := &models.User{
-		Url:      url,
-		HitCount: 0,
-		Code:     domain.GenerateCode(6),
-		Created:  time.Now().UTC(),
-	}
-
-	v := validator.New()
-	err := v.Struct(User)
-	if err != nil {
-		msg := "Validation failed"
-		for _, e := range err.(validator.ValidationErrors) {
-			msg = fmt.Sprintf("%s, %s", msg, e)
-		}
-		return nil, errors.New(msg)
+		Username:      username,
+		IronFactory:   models.NewIronFactory(),
+		CopperFactory: models.NewCopperFactory(),
+		GoldFactory:   models.NewGoldFactory(),
+		Created:       time.Now().UTC(),
 	}
 
 	result, err := r.coll.InsertOne(context.TODO(), User)
@@ -104,16 +88,66 @@ func (r *UserRepository) Create(url string) (*models.User, error) {
 	return User, nil
 }
 
-func (r *UserRepository) incrementHitCount(UserId primitive.ObjectID) error {
-	res, err := r.coll.UpdateOne(context.TODO(), bson.D{primitive.E{Key: "_id", Value: UserId}}, bson.D{primitive.E{Key: "$inc", Value: bson.D{primitive.E{Key: "hitCount", Value: 1}}}})
+func (r *UserRepository) UpgradeFactory(username, factory string) (*models.User, error) {
+	user, err := r.FindByUsername(username)
 	if err != nil {
-		return err
+		return user, err
 	}
-	if res.MatchedCount != 1 {
-		return errors.New("failed to increment hit count")
+
+	err = deduceOres(user, factory)
+	if err != nil {
+		return nil, err
+	}
+	upgradeFactory(user, factory)
+
+	_, err = r.coll.ReplaceOne(context.TODO(), bson.D{{"username", username}}, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func deduceOres(user *models.User, factory string) error {
+	cost := models.Ores{}
+	switch factory {
+	case "iron":
+		facLvl := user.IronFactory.GetLevel()
+		cost = models.IronConfig.Info[facLvl-1].Cost
+	case "copper":
+		facLvl := user.CopperFactory.GetLevel()
+		cost = models.CopperConfig.Info[facLvl-1].Cost
+	case "gold":
+		facLvl := user.CopperFactory.GetLevel()
+		cost = models.CopperConfig.Info[facLvl-1].Cost
+	}
+
+	user.IronSpending += cost.Iron
+	user.CopperSpending += cost.Copper
+	user.GoldSpending += cost.Gold
+
+	if user.GetIronOre() < 0 || user.GetCopperOre() < 0 || user.GetGoldOre() < 0 {
+		return errors.New("not enough resources")
 	}
 
 	return nil
+}
+
+func upgradeFactory(user *models.User, factory string) {
+	switch factory {
+	case "iron":
+		fac := &user.IronFactory
+		lvl := fac.GetLevel()
+		fac.UpgradeData[lvl] = time.Now().UTC().Add(time.Second * time.Duration(models.IronConfig.Info[lvl-1].UpgradeDuration))
+	case "copper":
+		fac := &user.IronFactory
+		lvl := fac.GetLevel()
+		fac.UpgradeData[lvl] = time.Now().UTC().Add(time.Second * time.Duration(models.IronConfig.Info[lvl-1].UpgradeDuration))
+	case "gold":
+		fac := &user.IronFactory
+		lvl := fac.GetLevel()
+		fac.UpgradeData[lvl] = time.Now().UTC().Add(time.Second * time.Duration(models.IronConfig.Info[lvl-1].UpgradeDuration))
+	}
 }
 
 func (r *UserRepository) Delete(UserId primitive.ObjectID) (string, error) {
