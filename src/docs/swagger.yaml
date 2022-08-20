@@ -1,0 +1,189 @@
+basePath: /
+consumes:
+- application/json
+definitions:
+  CreateUserBody:
+    properties:
+      url:
+        description: Full url
+        example: http://chupe.ba
+        type: string
+    required:
+    - url
+    type: object
+  ErrorResponse:
+    properties:
+      error:
+        description: Actual error thrown
+        example: No Users found in the DB
+        type: string
+      message:
+        description: User friendly message
+        example: Review input
+        type: string
+      status:
+        description: Http status
+        example: 404
+        type: integer
+    type: object
+  UserResponse:
+    properties:
+      code:
+        description: Short alphanumeric 6 letter code that is used for redirection
+        example: a1b2c3
+        type: string
+      created:
+        description: Date the User was stored
+        example: "2021-05-25T00:00:00.0Z"
+        format: date-time
+        type: string
+      hitCount:
+        description: Number of times the redirection took place
+        example: 42
+        type: integer
+      id:
+        description: ObjectID represented as a string
+        example: 62fbfaa5f79e97a5501979f3
+        type: string
+      url:
+        description: Full URL
+        example: http://chupe.ba
+        type: string
+    type: object
+host: localhost:5000
+info:
+  contact:
+    email: chupe@chupe.ba
+    name: Adnan
+  description: This is a practice project for Go
+  license:
+    name: GPLv3
+    url: https://www.gnu.org/licenses/gpl-3.0.html
+  termsOfService: http://chupe.ba/terms/
+  title: User Shortener API Demo
+  version: "1.0"
+paths:
+  /{code}:
+    get:
+      operationId: get-code
+      parameters:
+      - description: User Code
+        in: path
+        name: code
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/UserResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Return User by ID from the DB
+      tags:
+      - Code
+  /api/User:
+    get:
+      operationId: get-Users
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/UserResponse'
+              type: array
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Return all Users from the DB
+      tags:
+      - User
+    post:
+      operationId: create-User
+      parameters:
+      - description: JSON with a 'url' field that contains full URL
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/CreateUserBody'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/UserResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Send User URL to create a new shortened User
+      tags:
+      - User
+  /api/User/{id}:
+    delete:
+      operationId: delete-User
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Delete User object from the DB
+      tags:
+      - User
+    get:
+      operationId: get-User
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/UserResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Return User by ID from the DB
+      tags:
+      - User
+  /health:
+    get:
+      operationId: check-health
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Check the status of the service
+      tags:
+      - Health
+produces:
+- application/json
+schemes:
+- http
+swagger: "2.0"

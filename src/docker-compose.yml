@@ -1,0 +1,68 @@
+version: "3.8"
+
+services:
+  og2-coding-challenge:
+    container_name: og2-coding-challenge
+    image: og2-coding-challenge:dev
+    build:
+      context: .
+      target: dev
+    depends_on:
+      - mongo
+    volumes:
+      - .:/app
+    ports:
+      - "5000:5000"
+      - "2345:2345"
+    networks:
+      - og2-coding-challenge-network
+
+  mongo:
+    container_name: mongo
+    image: mongo
+    environment:
+    - MONGO_INITDB_ROOT_USERNAME=${DB_USER}
+    - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+    volumes:
+    - mongodb-data:/data/database
+    networks:
+    - og2-coding-challenge-network
+    ports:
+    - 27017:27017
+    healthcheck:
+      test: echo 'database.runCommand("ping").ok' | mongo 10.10.10.60:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    environment:
+    - ME_CONFIG_MONGODB_SERVER=mongo
+    - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+    - ME_CONFIG_MONGODB_ADMINUSERNAME=${DB_USER}
+    - ME_CONFIG_MONGODB_ADMINPASSWORD=${DB_PASSWORD}
+    - ME_CONFIG_BASICAUTH_USERNAME=${DB_GUI_USER}
+    - ME_CONFIG_BASICAUTH_PASSWORD=${DB_GUI_PASSWORD}
+    depends_on:
+    - mongo
+    networks:
+    - og2-coding-challenge-network
+    ports:
+    - 8081:8081
+    healthcheck:
+      test:  wget --quiet --tries=3 --spider http://${DB_GUI_USER}:${DB_GUI_PASSWORD}@10.10.10.60:8081 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  mongodb-data:
+    name: mongodb-data
+
+networks:
+  og2-coding-challenge-network:
+    name: og2-coding-challenge-network
