@@ -10,26 +10,23 @@ type Factory struct {
 	ID   primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Type FactoryType        `json:"type" bson:"type" validate:"required,alpha" example:"iron"`
 	// The idea is to use this information to calculate the ores information on each user load by calculating how much time did each factory spend on a level
-	// Time to upgrade is calculated as current time - map value with highest level. If the value is negative there is an upgrade pending.
+	// Time to upgrade is calculated as current time - map value with the highest level. If the value is negative there is an upgrade pending.
 	// Similarly level is calculated as maximum map value that has time in the past.
-	// Using a map is favoring readability vs an array that favors effieciency
-	UpgradeData map[int]time.Time `json:"upgradeData" bson:"upgradeData" validate:"required" example:"2021-05-25T00:00:00.0Z"`
+	// Using a map is favoring readability vs an array that favors efficiency
+	UpgradeData []time.Time `json:"upgradeData" bson:"upgradeData" validate:"required" example:"2021-05-25T00:00:00.0Z"`
 }
 
 func (f *Factory) GetLevel() int {
-	level := 1
-	for k, v := range f.UpgradeData {
-		if k > level && v.Before(time.Now().UTC()) {
-			level = k
-		}
+	level := len(f.UpgradeData)
+	if f.UnderConstruction() {
+		return level - 1
 	}
 
 	return level
 }
 
 func (f *Factory) GetRate() int {
-	// needs to be implemented from config file like other extension functions
-	return 10
+	return f.GetConfig()[f.GetLevel()-1].Production
 }
 
 func (f *Factory) TimeToUpgrade() time.Time {
@@ -54,32 +51,41 @@ func (f *Factory) UnderConstruction() bool {
 	return underConstruction
 }
 
-func (f *Factory) OreProduced() int {
-	var rate []LevelInfo
+func (f *Factory) GetConfig() []LevelInfo {
+	var lvlInfo []LevelInfo
 	switch f.Type {
 	case "iron":
-		rate = IronConfig.Info
+		lvlInfo = IronConfig.Info
 	case "copper":
-		rate = CopperConfig.Info
+		lvlInfo = CopperConfig.Info
 	case "gold":
-		rate = GoldConfig.Info
+		lvlInfo = GoldConfig.Info
 	}
 
+	return lvlInfo
+}
+
+func (f *Factory) OreProduced() int {
+	lvlInfo := f.GetConfig()
 	var result int
-	for l, v := range f.UpgradeData {
-		if v.After(time.Now().UTC()) {
-			continue
+	cl := f.GetLevel()
+	for i := 0; i < cl; i++ {
+		var timeOnLevel time.Duration
+		if i+1 == cl {
+			timeOnLevel = time.Now().UTC().Sub(f.UpgradeData[i])
+		} else {
+			timeOnLevel = f.UpgradeData[i+1].Sub(f.UpgradeData[i])
 		}
-		timeOnLevel := v.Sub(f.UpgradeData[l-1])
-		result += rate[l-1].Production * int(timeOnLevel.Seconds()) / 60 // divide by 60 since production rate is recorded in ore/minute
+
+		result += lvlInfo[i].Production * int(timeOnLevel.Seconds()) / 60 // divide by 60 since production rate is recorded in ore/minute
 	}
 
 	return result
 }
 
 func NewIronFactory() Factory {
-	d := make(map[int]time.Time)
-	d[1] = time.Now().UTC()
+	var d []time.Time
+	d = append(d, time.Now().UTC())
 	return Factory{
 		Type:        FactoryType(Iron),
 		UpgradeData: d,
@@ -87,8 +93,8 @@ func NewIronFactory() Factory {
 }
 
 func NewCopperFactory() Factory {
-	d := make(map[int]time.Time)
-	d[1] = time.Now().UTC()
+	var d []time.Time
+	d = append(d, time.Now().UTC())
 	return Factory{
 		Type:        FactoryType(Copper),
 		UpgradeData: d,
@@ -96,8 +102,8 @@ func NewCopperFactory() Factory {
 }
 
 func NewGoldFactory() Factory {
-	d := make(map[int]time.Time)
-	d[1] = time.Now().UTC()
+	var d []time.Time
+	d = append(d, time.Now().UTC())
 	return Factory{
 		Type:        FactoryType(Gold),
 		UpgradeData: d,

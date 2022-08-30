@@ -23,9 +23,9 @@ func (u *User) GetIronOre() int {
 }
 
 func (u *User) GetCopperOre() int {
-	return u.IronFactory.OreProduced() - u.CopperSpending
+	return u.CopperFactory.OreProduced() - u.CopperSpending
 }
 
 func (u *User) GetGoldOre() int {
-	return u.IronFactory.OreProduced() - u.GoldSpending
+	return u.GoldFactory.OreProduced() - u.GoldSpending
 }
