@@ -29,6 +29,8 @@ func main() {
 
 	api := app.Group("/")
 	controllers.RegisterUserHandler(api, database.DbClient())
+	controllers.RegisterDashboardHandler(api, database.DbClient())
+	controllers.RegisterUpgradeHandler(api, database.DbClient())
 
 	log.Fatal(app.Listen(":5000"))
 }
