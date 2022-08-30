@@ -4,19 +4,26 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/chupe/og2-coding-challenge/config"
 	"github.com/chupe/og2-coding-challenge/data"
 	"github.com/chupe/og2-coding-challenge/response"
+	"github.com/chupe/og2-coding-challenge/services"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type DashboardHandler struct {
 	repo *data.UserRepository
+	fs   *services.FactoryService
 }
 
-func NewDashboardHandler(repository *data.UserRepository) *DashboardHandler {
+func NewDashboardHandler(
+	repository *data.UserRepository,
+	factoryService *services.FactoryService,
+) *DashboardHandler {
 	return &DashboardHandler{
 		repo: repository,
+		fs:   factoryService,
 	}
 }
 
@@ -41,31 +48,55 @@ func (h *DashboardHandler) GetDashboard(c *fiber.Ctx) error {
 			})
 	}
 
+	ir, err := h.fs.GetRate(&user.IronFactory)
+	cr, err := h.fs.GetRate(&user.CopperFactory)
+	gr, err := h.fs.GetRate(&user.GoldFactory)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(
+			response.ErrorResponse{
+				Status:  http.StatusInternalServerError,
+				Message: "failed to get factory rates",
+				Error:   err.Error(),
+			})
+	}
+
+	iron, err := h.fs.OreProduced(&user.IronFactory)
+	copper, err := h.fs.OreProduced(&user.CopperFactory)
+	gold, err := h.fs.OreProduced(&user.GoldFactory)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(
+			response.ErrorResponse{
+				Status:  http.StatusInternalServerError,
+				Message: "failed to get amount of ores",
+				Error:   err.Error(),
+			})
+	}
+
 	return c.JSON(response.UserResponse{
 		ID:       user.ID.String(),
 		Username: user.Username,
-		Iron:     user.GetIronOre(),
-		Copper:   user.GetCopperOre(),
-		Gold:     user.GetGoldOre(),
+		Iron:     iron,
+		Copper:   copper,
+		Gold:     gold,
 		Factories: []response.Factories{
 			{
 				Type:              string(user.IronFactory.Type),
 				Level:             user.IronFactory.GetLevel(),
-				RatePerMinute:     user.IronFactory.GetRate(),
+				RatePerMinute:     ir,
 				UnderConstruction: user.IronFactory.UnderConstruction(),
 				TimeToFinish:      user.IronFactory.TimeToUpgrade(),
 			},
 			{
 				Type:              string(user.CopperFactory.Type),
 				Level:             user.CopperFactory.GetLevel(),
-				RatePerMinute:     user.CopperFactory.GetRate(),
+				RatePerMinute:     cr,
 				UnderConstruction: user.CopperFactory.UnderConstruction(),
 				TimeToFinish:      user.CopperFactory.TimeToUpgrade(),
 			},
 			{
 				Type:              string(user.GoldFactory.Type),
 				Level:             user.GoldFactory.GetLevel(),
-				RatePerMinute:     user.GoldFactory.GetRate(),
+				RatePerMinute:     gr,
 				UnderConstruction: user.GoldFactory.UnderConstruction(),
 				TimeToFinish:      user.GoldFactory.TimeToUpgrade(),
 			},
@@ -74,10 +105,10 @@ func (h *DashboardHandler) GetDashboard(c *fiber.Ctx) error {
 	})
 }
 
-func RegisterDashboardHandler(router fiber.Router, database *mongo.Client) {
+func RegisterDashboardHandler(r fiber.Router, database *mongo.Client, factoryConfig *config.FactoryConfig) {
 	repo := data.NewUserRepository(database)
-	h := NewDashboardHandler(repo)
+	fs := services.NewFactoryService(factoryConfig)
+	h := NewDashboardHandler(repo, fs)
 
-	r := router.Group("/")
 	r.Get("/dashboard", h.GetDashboard)
 }

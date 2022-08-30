@@ -14,23 +14,24 @@ import (
 )
 
 func main() {
-	err := config.Load()
+	err := config.LoadToEnv()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
+	fc := config.NewFactoryConfig()
+
 	app := fiber.New()
 	app.Use(cors.New())
 	app.Use(logger.New())
+
 	database.DbClient()
 	defer database.DbClient().Disconnect(context.TODO())
 
 	controllers.RegisterHealthCheckHandler(app)
-
-	api := app.Group("/")
-	controllers.RegisterUserHandler(api, database.DbClient())
-	controllers.RegisterDashboardHandler(api, database.DbClient())
-	controllers.RegisterUpgradeHandler(api, database.DbClient())
+	controllers.RegisterUserHandler(app, database.DbClient(), fc)
+	controllers.RegisterDashboardHandler(app, database.DbClient(), fc)
+	controllers.RegisterUpgradeHandler(app, database.DbClient(), fc)
 
 	log.Fatal(app.Listen(":5000"))
 }

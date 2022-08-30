@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -18,14 +19,15 @@ type User struct {
 	GoldFactory    Factory            `json:"goldFactory" bson:"goldFactory"`
 }
 
-func (u *User) GetIronOre() int {
-	return u.IronFactory.OreProduced() - u.IronSpending
-}
+func (u *User) GetFactory(ft string) (*Factory, error) {
+	switch ft {
+	case "iron":
+		return &u.IronFactory, nil
+	case "copper":
+		return &u.CopperFactory, nil
+	case "gold":
+		return &u.GoldFactory, nil
+	}
 
-func (u *User) GetCopperOre() int {
-	return u.CopperFactory.OreProduced() - u.CopperSpending
-}
-
-func (u *User) GetGoldOre() int {
-	return u.GoldFactory.OreProduced() - u.GoldSpending
+	return nil, errors.New("mismatched factory type")
 }

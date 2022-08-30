@@ -25,10 +25,6 @@ func (f *Factory) GetLevel() int {
 	return level
 }
 
-func (f *Factory) GetRate() int {
-	return f.GetConfig()[f.GetLevel()-1].Production
-}
-
 func (f *Factory) TimeToUpgrade() time.Time {
 	var timeToUpgrade time.Time
 	for _, v := range f.UpgradeData {
@@ -49,38 +45,6 @@ func (f *Factory) UnderConstruction() bool {
 	}
 
 	return underConstruction
-}
-
-func (f *Factory) GetConfig() []LevelInfo {
-	var lvlInfo []LevelInfo
-	switch f.Type {
-	case "iron":
-		lvlInfo = IronConfig.Info
-	case "copper":
-		lvlInfo = CopperConfig.Info
-	case "gold":
-		lvlInfo = GoldConfig.Info
-	}
-
-	return lvlInfo
-}
-
-func (f *Factory) OreProduced() int {
-	lvlInfo := f.GetConfig()
-	var result int
-	cl := f.GetLevel()
-	for i := 0; i < cl; i++ {
-		var timeOnLevel time.Duration
-		if i+1 == cl {
-			timeOnLevel = time.Now().UTC().Sub(f.UpgradeData[i])
-		} else {
-			timeOnLevel = f.UpgradeData[i+1].Sub(f.UpgradeData[i])
-		}
-
-		result += lvlInfo[i].Production * int(timeOnLevel.Seconds()) / 60 // divide by 60 since production rate is recorded in ore/minute
-	}
-
-	return result
 }
 
 func NewIronFactory() Factory {

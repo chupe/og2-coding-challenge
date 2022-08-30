@@ -3,6 +3,9 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
+
+	"github.com/chupe/og2-coding-challenge/config"
 	"github.com/chupe/og2-coding-challenge/data"
 	"github.com/chupe/og2-coding-challenge/response"
 	"github.com/chupe/og2-coding-challenge/services"
@@ -29,6 +32,7 @@ type upgradeFactory struct {
 } // @name UpgradeFactoryBody
 
 func (h *UpgradeHandler) UpgradeFactory(c *fiber.Ctx) error {
+	v := validator.New()
 	d := new(upgradeFactory)
 	err := c.BodyParser(d)
 	if err != nil {
@@ -36,6 +40,16 @@ func (h *UpgradeHandler) UpgradeFactory(c *fiber.Ctx) error {
 			response.ErrorResponse{
 				Status:  http.StatusBadRequest,
 				Message: "Username and factory are required",
+				Error:   err.Error(),
+			})
+	}
+
+	err = v.Struct(d)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(
+			response.ErrorResponse{
+				Status:  http.StatusBadRequest,
+				Message: "Validation failed",
 				Error:   err.Error(),
 			})
 	}
@@ -76,11 +90,10 @@ func (h *UpgradeHandler) UpgradeFactory(c *fiber.Ctx) error {
 	})
 }
 
-func RegisterUpgradeHandler(router fiber.Router, database *mongo.Client) {
+func RegisterUpgradeHandler(r fiber.Router, database *mongo.Client, fc *config.FactoryConfig) {
 	repo := data.NewUserRepository(database)
-	factoryService := services.NewFactoryService()
+	factoryService := services.NewFactoryService(fc)
 	h := NewUpgradeHandler(repo, factoryService)
 
-	r := router.Group("/")
 	r.Post("/upgrade", h.UpgradeFactory)
 }

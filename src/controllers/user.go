@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/chupe/og2-coding-challenge/config"
 	"github.com/chupe/og2-coding-challenge/services"
 
 	"github.com/chupe/og2-coding-challenge/data"
@@ -16,12 +17,18 @@ import (
 type UserHandler struct {
 	repo           *data.UserRepository
 	factoryService *services.FactoryService
+	factoryConfig  *config.FactoryConfig
 }
 
-func NewUserHandler(repository *data.UserRepository, factoryService *services.FactoryService) *UserHandler {
+func NewUserHandler(
+	repository *data.UserRepository,
+	factoryService *services.FactoryService,
+	factoryConfig *config.FactoryConfig,
+) *UserHandler {
 	return &UserHandler{
 		repo:           repository,
 		factoryService: factoryService,
+		factoryConfig:  factoryConfig,
 	}
 }
 
@@ -49,9 +56,6 @@ func (h *UserHandler) Get(c *fiber.Ctx) error {
 	return c.JSON(response.UserResponse{
 		ID:       user.ID.String(),
 		Username: user.Username,
-		Iron:     user.GetIronOre(),
-		Copper:   user.GetCopperOre(),
-		Gold:     user.GetGoldOre(),
 		Created:  user.Created,
 	})
 }
@@ -127,10 +131,10 @@ func (h *UserHandler) Delete(c *fiber.Ctx) error {
 	})
 }
 
-func RegisterUserHandler(router fiber.Router, database *mongo.Client) {
+func RegisterUserHandler(router fiber.Router, database *mongo.Client, factoryConfig *config.FactoryConfig) {
 	repo := data.NewUserRepository(database)
-	factoryService := services.NewFactoryService()
-	h := NewUserHandler(repo, factoryService)
+	factoryService := services.NewFactoryService(factoryConfig)
+	h := NewUserHandler(repo, factoryService, factoryConfig)
 
 	r := router.Group("/user")
 	r.Get("/:id", h.Get)
