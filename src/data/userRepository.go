@@ -48,8 +48,11 @@ func (r *UserRepository) FindAll() ([]*models.User, error) {
 
 func (r *UserRepository) Find(id string) (*models.User, error) {
 	var User *models.User
-	bsonId, _ := primitive.ObjectIDFromHex(id)
-	err := r.coll.FindOne(context.TODO(), bson.D{primitive.E{Key: "_id", Value: bsonId}}).Decode(&User)
+	bsonId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	err = r.coll.FindOne(context.TODO(), bson.D{primitive.E{Key: "_id", Value: bsonId}}).Decode(&User)
 	if err != nil {
 		return nil, errors.New("error searching collection")
 	}
@@ -59,7 +62,7 @@ func (r *UserRepository) Find(id string) (*models.User, error) {
 
 func (r *UserRepository) FindByUsername(username string) (*models.User, error) {
 	var User *models.User
-	err := r.coll.FindOne(context.TODO(), bson.D{primitive.E{Key: "username", Value: username}}).Decode(&User)
+	err := r.coll.FindOne(context.TODO(), bson.D{{"username", username}}).Decode(&User)
 	if err != nil {
 		return nil, err
 	}
@@ -88,73 +91,25 @@ func (r *UserRepository) Create(username string) (*models.User, error) {
 	return User, nil
 }
 
-func (r *UserRepository) UpgradeFactory(username, factory string) (*models.User, error) {
-	user, err := r.FindByUsername(username)
+func (r *UserRepository) Update(user *models.User) error {
+	_, err := r.coll.ReplaceOne(context.TODO(), bson.D{{"_id", user.ID}}, user)
 	if err != nil {
-		return user, err
-	}
-
-	err = deduceOres(user, factory)
-	if err != nil {
-		return nil, err
-	}
-	upgradeFactory(user, factory)
-
-	_, err = r.coll.ReplaceOne(context.TODO(), bson.D{{"username", username}}, user)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
-}
-
-func deduceOres(user *models.User, factory string) error {
-	cost := models.Ores{}
-	switch factory {
-	case "iron":
-		facLvl := user.IronFactory.GetLevel()
-		cost = models.IronConfig.Info[facLvl-1].Cost
-	case "copper":
-		facLvl := user.CopperFactory.GetLevel()
-		cost = models.CopperConfig.Info[facLvl-1].Cost
-	case "gold":
-		facLvl := user.CopperFactory.GetLevel()
-		cost = models.CopperConfig.Info[facLvl-1].Cost
-	}
-
-	user.IronSpending += cost.Iron
-	user.CopperSpending += cost.Copper
-	user.GoldSpending += cost.Gold
-
-	if user.GetIronOre() < 0 || user.GetCopperOre() < 0 || user.GetGoldOre() < 0 {
-		return errors.New("not enough resources")
+		return err
 	}
 
 	return nil
 }
 
-func upgradeFactory(user *models.User, factory string) {
-	switch factory {
-	case "iron":
-		fac := &user.IronFactory
-		lvl := fac.GetLevel()
-		fac.UpgradeData[lvl] = time.Now().UTC().Add(time.Second * time.Duration(models.IronConfig.Info[lvl-1].UpgradeDuration))
-	case "copper":
-		fac := &user.IronFactory
-		lvl := fac.GetLevel()
-		fac.UpgradeData[lvl] = time.Now().UTC().Add(time.Second * time.Duration(models.IronConfig.Info[lvl-1].UpgradeDuration))
-	case "gold":
-		fac := &user.IronFactory
-		lvl := fac.GetLevel()
-		fac.UpgradeData[lvl] = time.Now().UTC().Add(time.Second * time.Duration(models.IronConfig.Info[lvl-1].UpgradeDuration))
-	}
-}
-
-func (r *UserRepository) Delete(UserId primitive.ObjectID) (string, error) {
-	_, err := r.coll.DeleteOne(context.TODO(), bson.D{primitive.E{Key: "_id", Value: UserId}})
+func (r *UserRepository) Delete(id string) (string, error) {
+	bsonId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return UserId.String(), err
+		return "", err
 	}
 
-	return UserId.String(), nil
+	_, err = r.coll.DeleteOne(context.TODO(), bson.D{primitive.E{Key: "_id", Value: bsonId}})
+	if err != nil {
+		return bsonId.String(), err
+	}
+
+	return bsonId.String(), nil
 }
