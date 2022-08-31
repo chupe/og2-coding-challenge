@@ -32,6 +32,14 @@ func NewUserHandler(
 	}
 }
 
+// GetUser godoc
+// @Summary Get user by id
+// @ID get-user
+// @Tags user
+// @Param	id	path	string	true	"user id"
+// @Success 200 {object} response.UserResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Router /user/{id} [get]
 func (h *UserHandler) Get(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -65,6 +73,14 @@ type createUser struct {
 	Username string `json:"username" validate:"required,alphanum" example:"exampleUsername"`
 } // @name CreateUserBody
 
+// CreateUser godoc
+// @Summary Create new user
+// @ID create-user
+// @Tags user
+// @Param	createUser	body	createUser	true	"json containing username"
+// @Success 200 {object} response.UserResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Router /user [post]
 func (h *UserHandler) Create(c *fiber.Ctx) error {
 	v := validator.New()
 	d := new(createUser)
@@ -105,6 +121,14 @@ func (h *UserHandler) Create(c *fiber.Ctx) error {
 	})
 }
 
+// DeleteUser godoc
+// @Summary Delete user by id
+// @ID delete-user
+// @Tags user
+// @Param	id	path	string	true	"user id"
+// @Success 204
+// @Failure 404 {object} response.ErrorResponse
+// @Router /user/{id} [delete]
 func (h *UserHandler) Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -126,9 +150,7 @@ func (h *UserHandler) Delete(c *fiber.Ctx) error {
 			})
 	}
 
-	return c.JSON(response.UserResponse{
-		ID: id,
-	})
+	return c.SendStatus(http.StatusNoContent)
 }
 
 func RegisterUserHandler(router fiber.Router, database *mongo.Client, factoryConfig *config.FactoryConfig) {

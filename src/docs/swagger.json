@@ -1,0 +1,320 @@
+{
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "schemes": [
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "A coding challange with the task of finishing it in under 4 hours",
+        "title": "OG2 Coding Challenge",
+        "termsOfService": "http://chupe.ba/terms/",
+        "contact": {
+            "name": "Adnan",
+            "email": "chupe@chupe.ba"
+        },
+        "license": {
+            "name": "GPLv3",
+            "url": "https://www.gnu.org/licenses/gpl-3.0.html"
+        },
+        "version": "0.1"
+    },
+    "host": "localhost:5000",
+    "basePath": "/",
+    "paths": {
+        "/dashboard": {
+            "get": {
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "Return dashboard for username",
+                "operationId": "get-dashboard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "username",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/UserResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Check the status of the service",
+                "operationId": "check-health",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/upgrade": {
+            "post": {
+                "tags": [
+                    "factory"
+                ],
+                "summary": "Upgrade factory type for a user",
+                "operationId": "upgrade-factory",
+                "parameters": [
+                    {
+                        "description": "username and factory type",
+                        "name": "UpgradeFactoryBody",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UpgradeFactoryBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user": {
+            "post": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "Create new user",
+                "operationId": "create-user",
+                "parameters": [
+                    {
+                        "description": "json containing username",
+                        "name": "createUser",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CreateUserBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/UserResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/{id}": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get user by id",
+                "operationId": "get-user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/UserResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "Delete user by id",
+                "operationId": "delete-user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "CreateUserBody": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "username": {
+                    "description": "Full url",
+                    "type": "string",
+                    "example": "exampleUsername"
+                }
+            }
+        },
+        "ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "description": "Actual error thrown",
+                    "type": "string",
+                    "example": "No Users found in the DB"
+                },
+                "message": {
+                    "description": "User friendly message",
+                    "type": "string",
+                    "example": "Review input"
+                },
+                "status": {
+                    "description": "Http status",
+                    "type": "integer",
+                    "example": 404
+                }
+            }
+        },
+        "UpgradeFactoryBody": {
+            "type": "object",
+            "required": [
+                "factory",
+                "username"
+            ],
+            "properties": {
+                "factory": {
+                    "type": "string",
+                    "example": "exampleFactory"
+                },
+                "username": {
+                    "description": "Full url",
+                    "type": "string",
+                    "example": "exampleUsername"
+                }
+            }
+        },
+        "UserResponse": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "copper": {
+                    "description": "Number of times the redirection took place",
+                    "type": "integer",
+                    "example": 42
+                },
+                "created": {
+                    "description": "Date the User was stored",
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2021-05-25T00:00:00.0Z"
+                },
+                "factories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.Factories"
+                    }
+                },
+                "gold": {
+                    "type": "integer",
+                    "example": 42
+                },
+                "id": {
+                    "description": "ObjectID represented as a string",
+                    "type": "string",
+                    "example": "62fbfaa5f79e97a5501979f3"
+                },
+                "iron": {
+                    "description": "Short alphanumeric 6 letter code that is used for redirection",
+                    "type": "integer",
+                    "example": 42
+                },
+                "username": {
+                    "description": "Full URL",
+                    "type": "string",
+                    "example": "example123"
+                }
+            }
+        },
+        "response.Factories": {
+            "type": "object",
+            "properties": {
+                "level": {
+                    "type": "integer"
+                },
+                "ratePerMinute": {
+                    "type": "integer"
+                },
+                "timeToFinish": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "underConstruction": {
+                    "type": "boolean"
+                }
+            }
+        }
+    }
+}

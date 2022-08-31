@@ -31,6 +31,14 @@ type upgradeFactory struct {
 	Factory  string `json:"factory" validate:"required,alpha" example:"exampleFactory"`
 } // @name UpgradeFactoryBody
 
+// UpgradeFactory godoc
+// @Summary Upgrade factory type for a user
+// @ID upgrade-factory
+// @Tags factory
+// @Param	UpgradeFactoryBody	body	upgradeFactory	true	"username and factory type"
+// @Success 204
+// @Failure 404 {object} response.ErrorResponse
+// @Router /upgrade [post]
 func (h *UpgradeHandler) UpgradeFactory(c *fiber.Ctx) error {
 	v := validator.New()
 	d := new(upgradeFactory)
@@ -84,10 +92,7 @@ func (h *UpgradeHandler) UpgradeFactory(c *fiber.Ctx) error {
 			})
 	}
 
-	return c.JSON(response.UserResponse{
-		ID:       user.ID.Hex(),
-		Username: user.Username,
-	})
+	return c.SendStatus(http.StatusNoContent)
 }
 
 func RegisterUpgradeHandler(r fiber.Router, database *mongo.Client, fc *config.FactoryConfig) {

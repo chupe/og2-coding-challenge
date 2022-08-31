@@ -27,6 +27,14 @@ func NewDashboardHandler(
 	}
 }
 
+// GetDashboard godoc
+// @Summary Return dashboard for username
+// @ID get-dashboard
+// @Tags dashboard
+// @Param	username	query	string	true	"username"
+// @Success 200 {object} response.UserResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Router /dashboard [get]
 func (h *DashboardHandler) GetDashboard(c *fiber.Ctx) error {
 	username := c.Query("username")
 	if username == "" {
