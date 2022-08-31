@@ -113,7 +113,7 @@ func (h *DashboardHandler) GetDashboard(c *fiber.Ctx) error {
 	})
 }
 
-func RegisterDashboardHandler(r fiber.Router, database *mongo.Client, factoryConfig *config.FactoryConfig) {
+func RegisterDashboardHandler(r fiber.Router, database *mongo.Client, factoryConfig *config.Factories) {
 	repo := data.NewUserRepository(database)
 	fs := services.NewFactoryService(factoryConfig)
 	h := NewDashboardHandler(repo, fs)

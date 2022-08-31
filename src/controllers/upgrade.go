@@ -95,7 +95,7 @@ func (h *UpgradeHandler) UpgradeFactory(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusNoContent)
 }
 
-func RegisterUpgradeHandler(r fiber.Router, database *mongo.Client, fc *config.FactoryConfig) {
+func RegisterUpgradeHandler(r fiber.Router, database *mongo.Client, fc *config.Factories) {
 	repo := data.NewUserRepository(database)
 	factoryService := services.NewFactoryService(fc)
 	h := NewUpgradeHandler(repo, factoryService)

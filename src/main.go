@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/chupe/og2-coding-challenge/config"
@@ -30,26 +31,24 @@ import (
 // @schemes http
 // @BasePath /
 func main() {
-	err := config.LoadToEnv()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+	cfg := config.Config{}
 
-	fc := config.NewFactoryConfig()
+	config.LoadFromFile(&cfg)
+	fmt.Printf("%+v", cfg)
 
 	app := fiber.New()
 	app.Use(cors.New())
 	app.Use(logger.New())
 
-	database.DbClient()
-	defer database.DbClient().Disconnect(context.TODO())
+	database.Connect()
+	defer database.Connect().Disconnect(context.TODO())
 
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	controllers.RegisterHealthCheckHandler(app)
-	controllers.RegisterUserHandler(app, database.DbClient(), fc)
-	controllers.RegisterDashboardHandler(app, database.DbClient(), fc)
-	controllers.RegisterUpgradeHandler(app, database.DbClient(), fc)
+	controllers.RegisterUserHandler(app, database.Connect(), &cfg.Factories)
+	controllers.RegisterDashboardHandler(app, database.Connect(), &cfg.Factories)
+	controllers.RegisterUpgradeHandler(app, database.Connect(), &cfg.Factories)
 
 	log.Fatal(app.Listen(":5000"))
 }

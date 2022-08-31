@@ -1,0 +1,96 @@
+db:
+  host: mongo
+  port: 27017
+  user: mongodb
+  password: dbpassword
+  name: og2-coding-challenge-db
+mongo_express:
+  user: admin
+  password: admin123
+
+factories:
+  iron:
+    - level: 1
+      production: 600
+      duration: 15
+      cost:
+        iron: 300
+        copper: 100
+        gold: 1
+    - level: 2
+      production: 1200
+      duration: 30
+      cost:
+        iron: 800
+        copper: 250
+        gold: 2
+    - level: 3
+      production: 2400
+      duration: 60
+      cost:
+        iron: 1600
+        copper: 500
+        gold: 4
+    - level: 4
+      production: 4800
+      duration: 90
+      cost:
+        iron: 3000
+        copper: 1000
+        gold: 8
+    - level: 5
+      production: 9000
+  copper:
+    - level: 1
+      production: 180
+      duration: 15
+      cost:
+        iron: 200
+        copper: 70
+    - level: 2
+      production: 420
+      duration: 30
+      cost:
+        iron: 400
+        copper: 150
+    - level: 3
+      production: 840
+      duration: 60
+      cost:
+        iron: 800
+        copper: 300
+    - level: 4
+      production: 1800
+      duration: 90
+      cost:
+        iron: 1600
+        copper: 600
+    - level: 5
+      production: 3660
+  gold:
+    - level: 1
+      production: 2
+      duration: 15
+      cost:
+        copper: 100
+        gold: 2
+    - level: 2
+      production: 3
+      duration: 30
+      cost:
+        copper: 200
+        gold: 4
+    - level: 3
+      production: 4
+      duration: 60
+      cost:
+        copper: 400
+        gold: 8
+    - level: 4
+      production: 6
+      duration: 90
+      cost:
+        copper: 800
+        gold: 16
+    - level: 5
+      production: 8

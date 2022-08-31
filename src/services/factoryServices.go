@@ -9,23 +9,27 @@ import (
 )
 
 type FactoryService struct {
-	fc *config.FactoryConfig
+	fc *config.Factories
 }
 
-func NewFactoryService(fc *config.FactoryConfig) *FactoryService {
+func NewFactoryService(fc *config.Factories) *FactoryService {
 	return &FactoryService{
 		fc: fc,
 	}
 }
 
-func (fs *FactoryService) GetConfig(f *models.Factory) ([]config.LevelInfo, error) {
-	config := *fs.fc
-	lvlInfo, ok := config[string(f.Type)]
-
-	if !ok {
-		return nil, errors.New("failed to load factory config")
+func (fs *FactoryService) GetConfig(f *models.Factory) ([]config.Level, error) {
+	var result []config.Level
+	switch string(f.Type) {
+	case "iron":
+		result = fs.fc.Iron
+	case "copper":
+		result = fs.fc.Copper
+	case "gold":
+		result = fs.fc.Gold
 	}
-	return lvlInfo, nil
+
+	return result, nil
 }
 
 func (fs *FactoryService) GetRate(f *models.Factory) (int, error) {

@@ -17,13 +17,13 @@ import (
 type UserHandler struct {
 	repo           *data.UserRepository
 	factoryService *services.FactoryService
-	factoryConfig  *config.FactoryConfig
+	factoryConfig  *config.Factories
 }
 
 func NewUserHandler(
 	repository *data.UserRepository,
 	factoryService *services.FactoryService,
-	factoryConfig *config.FactoryConfig,
+	factoryConfig *config.Factories,
 ) *UserHandler {
 	return &UserHandler{
 		repo:           repository,
@@ -153,7 +153,7 @@ func (h *UserHandler) Delete(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusNoContent)
 }
 
-func RegisterUserHandler(router fiber.Router, database *mongo.Client, factoryConfig *config.FactoryConfig) {
+func RegisterUserHandler(router fiber.Router, database *mongo.Client, factoryConfig *config.Factories) {
 	repo := data.NewUserRepository(database)
 	factoryService := services.NewFactoryService(factoryConfig)
 	h := NewUserHandler(repo, factoryService, factoryConfig)
