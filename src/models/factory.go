@@ -9,6 +9,7 @@ import (
 type Factory struct {
 	ID   primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Type FactoryType        `json:"type" bson:"type" validate:"required,alpha" example:"iron"`
+
 	// The idea is to use this information to calculate the ores information on each user load by calculating how much time did each factory spend on a level
 	// Time to upgrade is calculated as current time - map value with the highest level. If the value is negative there is an upgrade pending.
 	// Similarly level is calculated as maximum map value that has time in the past.

@@ -140,7 +140,7 @@ func (h *UserHandler) Delete(c *fiber.Ctx) error {
 			})
 	}
 
-	id, err := h.repo.Delete(id)
+	_, err := h.repo.Delete(id)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(
 			response.ErrorResponse{

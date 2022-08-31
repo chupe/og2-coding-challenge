@@ -238,6 +238,40 @@ const docTemplate = `{
                 }
             }
         },
+        "Factory": {
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "level": {
+                    "description": "Factory level",
+                    "type": "integer",
+                    "example": 3
+                },
+                "ratePerMinute": {
+                    "description": "Ore production rate per minute",
+                    "type": "integer",
+                    "example": 20
+                },
+                "timeToFinish": {
+                    "description": "Time of finishing the latest update",
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2021-05-25T00:00:00.0Z"
+                },
+                "type": {
+                    "description": "Factory type",
+                    "type": "string",
+                    "example": "iron"
+                },
+                "underConstruction": {
+                    "description": "Factory is under construction",
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
         "UpgradeFactoryBody": {
             "type": "object",
             "required": [
@@ -276,7 +310,7 @@ const docTemplate = `{
                 "factories": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.Factories"
+                        "$ref": "#/definitions/Factory"
                     }
                 },
                 "gold": {
@@ -297,26 +331,6 @@ const docTemplate = `{
                     "description": "Full URL",
                     "type": "string",
                     "example": "example123"
-                }
-            }
-        },
-        "response.Factories": {
-            "type": "object",
-            "properties": {
-                "level": {
-                    "type": "integer"
-                },
-                "ratePerMinute": {
-                    "type": "integer"
-                },
-                "timeToFinish": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "underConstruction": {
-                    "type": "boolean"
                 }
             }
         }

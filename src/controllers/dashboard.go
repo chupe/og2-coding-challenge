@@ -86,7 +86,7 @@ func (h *DashboardHandler) GetDashboard(c *fiber.Ctx) error {
 		Iron:     iron,
 		Copper:   copper,
 		Gold:     gold,
-		Factories: []response.Factories{
+		Factories: []response.Factory{
 			{
 				Type:              string(user.IronFactory.Type),
 				Level:             user.IronFactory.GetLevel(),

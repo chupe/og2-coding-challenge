@@ -26,6 +26,32 @@ definitions:
         example: 404
         type: integer
     type: object
+  Factory:
+    properties:
+      level:
+        description: Factory level
+        example: 3
+        type: integer
+      ratePerMinute:
+        description: Ore production rate per minute
+        example: 20
+        type: integer
+      timeToFinish:
+        description: Time of finishing the latest update
+        example: "2021-05-25T00:00:00.0Z"
+        format: date-time
+        type: string
+      type:
+        description: Factory type
+        example: iron
+        type: string
+      underConstruction:
+        description: Factory is under construction
+        example: false
+        type: boolean
+    required:
+    - type
+    type: object
   UpgradeFactoryBody:
     properties:
       factory:
@@ -52,7 +78,7 @@ definitions:
         type: string
       factories:
         items:
-          $ref: '#/definitions/response.Factories'
+          $ref: '#/definitions/Factory'
         type: array
       gold:
         example: 42
@@ -71,19 +97,6 @@ definitions:
         type: string
     required:
     - username
-    type: object
-  response.Factories:
-    properties:
-      level:
-        type: integer
-      ratePerMinute:
-        type: integer
-      timeToFinish:
-        type: string
-      type:
-        type: string
-      underConstruction:
-        type: boolean
     type: object
 host: localhost:5000
 info:
