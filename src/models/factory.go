@@ -38,15 +38,7 @@ func (f *Factory) TimeToUpgrade() time.Time {
 }
 
 func (f *Factory) UnderConstruction() bool {
-	underConstruction := false
-	for _, v := range f.UpgradeData {
-		now := time.Now().UTC()
-		if v.After(now) {
-			underConstruction = true
-		}
-	}
-
-	return underConstruction
+	return f.UpgradeData[len(f.UpgradeData)-1].After(time.Now().UTC())
 }
 
 func NewIronFactory() Factory {
