@@ -6,7 +6,6 @@ import (
 
 	"github.com/chupe/og2-coding-challenge/config"
 	"github.com/chupe/og2-coding-challenge/models"
-	"github.com/fatih/color"
 )
 
 type FactoryService struct {
@@ -78,15 +77,20 @@ func (fs *FactoryService) UpgradeFactory(user *models.User, factory string) (*mo
 		return nil, err
 	}
 
-	err = fs.deduceOres(user, models.Cost(fc[fac.GetLevel()].Cost))
+	lvl := fac.GetLevel()
+	if !(len(fc) > lvl) {
+		return nil, errors.New("level information not available")
+	}
+
+	err = fs.deduceOres(user, models.Cost(fc[fac.GetLevel()-1].Cost))
 	if err != nil {
 		return nil, err
 	}
 
-	err = fs.upgradeFactory(user, fac)
-	if err != nil {
-		return nil, err
-	}
+	fac.UpgradeData = append(
+		fac.UpgradeData,
+		time.Now().UTC().Add(time.Second*time.Duration(fc[lvl-1].UpgradeDuration)),
+	)
 
 	return user, nil
 }
@@ -106,28 +110,6 @@ func (fs *FactoryService) deduceOres(user *models.User, cost models.Cost) error 
 	if iron < 0 || copper < 0 || gold < 0 {
 		return errors.New("not enough resources")
 	}
-
-	return nil
-}
-
-func (fs *FactoryService) upgradeFactory(user *models.User, f *models.Factory) error {
-	fc, err := fs.GetConfig(f)
-	if err != nil {
-		return err
-	}
-
-	lvl := f.GetLevel()
-	if !(len(fc) > lvl) {
-		return errors.New("level information not available")
-	}
-	f.UpgradeData = append(
-		f.UpgradeData,
-		time.Now().UTC().Add(time.Second*time.Duration(fc[lvl-1].UpgradeDuration)),
-	)
-
-	now := time.Now().UTC()
-	appended := time.Second * time.Duration(fc[lvl-1].UpgradeDuration)
-	color.Green("APPENDED TIME:\n%v\n%v", now, appended)
 
 	return nil
 }

@@ -73,7 +73,7 @@ func (h *UpgradeHandler) UpgradeFactory(c *fiber.Ctx) error {
 
 	user, err = h.factoryService.UpgradeFactory(user, d.Factory)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(
+		return c.Status(http.StatusInternalServerError).JSON(
 			response.ErrorResponse{
 				Status:  http.StatusInternalServerError,
 				Message: "Failed to upgrade",
