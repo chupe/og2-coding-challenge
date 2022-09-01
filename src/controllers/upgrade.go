@@ -10,7 +10,6 @@ import (
 	"github.com/chupe/og2-coding-challenge/response"
 	"github.com/chupe/og2-coding-challenge/services"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UpgradeHandler struct {
@@ -95,10 +94,10 @@ func (h *UpgradeHandler) UpgradeFactory(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusNoContent)
 }
 
-func RegisterUpgradeHandler(r fiber.Router, database *mongo.Client, fc *config.Factories) {
-	repo := data.NewUserRepository(database)
-	factoryService := services.NewFactoryService(fc)
-	h := NewUpgradeHandler(repo, factoryService)
+func RegisterUpgradeHandler(r fiber.Router, env *config.Env) {
+	repo := data.NewUserRepository(env)
+	fs := services.NewFactoryService(&env.Cfg.Factories)
+	h := NewUpgradeHandler(repo, fs)
 
 	r.Post("/upgrade", h.UpgradeFactory)
 }

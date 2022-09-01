@@ -28,7 +28,7 @@ type Factories struct {
 type Level struct {
 	Level           int
 	Production      int // per minute
-	UpgradeDuration int // duration in seconds
+	UpgradeDuration int `json:"duration"` // duration in seconds
 	Cost            cost
 }
 

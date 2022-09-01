@@ -6,6 +6,7 @@ import (
 
 	"github.com/chupe/og2-coding-challenge/config"
 	"github.com/chupe/og2-coding-challenge/models"
+	"github.com/fatih/color"
 )
 
 type FactoryService struct {
@@ -123,6 +124,10 @@ func (fs *FactoryService) upgradeFactory(user *models.User, f *models.Factory) e
 		f.UpgradeData,
 		time.Now().UTC().Add(time.Second*time.Duration(fc[lvl-1].UpgradeDuration)),
 	)
+
+	now := time.Now().UTC()
+	appended := time.Second * time.Duration(fc[lvl-1].UpgradeDuration)
+	color.Green("APPENDED TIME:\n%v\n%v", now, appended)
 
 	return nil
 }

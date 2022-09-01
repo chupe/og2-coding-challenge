@@ -3,16 +3,15 @@ package database
 import (
 	"context"
 	"log"
-	"os"
 
+	"github.com/chupe/og2-coding-challenge/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func initialize(client *mongo.Client) *mongo.Client {
-	dbName := os.Getenv("DB_NAME")
-	collection := client.Database(dbName).Collection("Users")
+func initialize(client *mongo.Client, cfg *config.DB) *mongo.Client {
+	collection := client.Database(cfg.Name).Collection("Users")
 
 	_, err := collection.Indexes().CreateOne(
 		context.Background(),

@@ -9,7 +9,6 @@ import (
 	"github.com/chupe/og2-coding-challenge/response"
 	"github.com/chupe/og2-coding-challenge/services"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type DashboardHandler struct {
@@ -113,9 +112,9 @@ func (h *DashboardHandler) GetDashboard(c *fiber.Ctx) error {
 	})
 }
 
-func RegisterDashboardHandler(r fiber.Router, database *mongo.Client, factoryConfig *config.Factories) {
-	repo := data.NewUserRepository(database)
-	fs := services.NewFactoryService(factoryConfig)
+func RegisterDashboardHandler(r fiber.Router, env *config.Env) {
+	repo := data.NewUserRepository(env)
+	fs := services.NewFactoryService(&env.Cfg.Factories)
 	h := NewDashboardHandler(repo, fs)
 
 	r.Get("/dashboard", h.GetDashboard)

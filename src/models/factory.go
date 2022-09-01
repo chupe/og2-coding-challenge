@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/fatih/color"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -40,7 +41,9 @@ func (f *Factory) TimeToUpgrade() time.Time {
 func (f *Factory) UnderConstruction() bool {
 	underConstruction := false
 	for _, v := range f.UpgradeData {
-		if v.After(time.Now().UTC()) {
+		now := time.Now().UTC()
+		color.Green("UNDER CONSTRUCTION: \n%s, \n%v, \n%s", f.Type, underConstruction, now)
+		if v.After(now) {
 			underConstruction = true
 		}
 	}

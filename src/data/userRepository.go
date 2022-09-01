@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"log"
-	"os"
 	"time"
 
+	"github.com/chupe/og2-coding-challenge/config"
 	"github.com/chupe/og2-coding-challenge/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,10 +17,9 @@ type UserRepository struct {
 	coll *mongo.Collection
 }
 
-func NewUserRepository(dbClient *mongo.Client) *UserRepository {
-	dbName := os.Getenv("DB_NAME")
+func NewUserRepository(env *config.Env) *UserRepository {
 	return &UserRepository{
-		coll: dbClient.Database(dbName).Collection("Users"),
+		coll: env.DB.Database(env.Cfg.DB.Name).Collection("Users"),
 	}
 }
 

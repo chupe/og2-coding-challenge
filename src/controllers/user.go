@@ -11,7 +11,6 @@ import (
 	"github.com/chupe/og2-coding-challenge/response"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserHandler struct {
@@ -153,13 +152,13 @@ func (h *UserHandler) Delete(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusNoContent)
 }
 
-func RegisterUserHandler(router fiber.Router, database *mongo.Client, factoryConfig *config.Factories) {
-	repo := data.NewUserRepository(database)
-	factoryService := services.NewFactoryService(factoryConfig)
-	h := NewUserHandler(repo, factoryService, factoryConfig)
+func RegisterUserHandler(r fiber.Router, env *config.Env) {
+	repo := data.NewUserRepository(env)
+	fs := services.NewFactoryService(&env.Cfg.Factories)
+	h := NewUserHandler(repo, fs, &env.Cfg.Factories)
 
-	r := router.Group("/user")
-	r.Get("/:id", h.Get)
-	r.Post("/", h.Create)
-	r.Delete("/:id", h.Delete)
+	rg := r.Group("/user")
+	rg.Get("/:id", h.Get)
+	rg.Post("/", h.Create)
+	rg.Delete("/:id", h.Delete)
 }
