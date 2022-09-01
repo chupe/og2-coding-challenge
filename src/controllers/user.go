@@ -5,27 +5,26 @@ import (
 	"net/http"
 
 	"github.com/chupe/og2-coding-challenge/config"
-	"github.com/chupe/og2-coding-challenge/services"
+	"github.com/chupe/og2-coding-challenge/models"
 
-	"github.com/chupe/og2-coding-challenge/data"
 	"github.com/chupe/og2-coding-challenge/response"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
 
 type UserHandler struct {
-	repo           *data.UserRepository
-	factoryService *services.FactoryService
+	users          *models.Users
+	factoryService *models.Factories
 	factoryConfig  *config.Factories
 }
 
 func NewUserHandler(
-	repository *data.UserRepository,
-	factoryService *services.FactoryService,
+	userssitory *models.Users,
+	factoryService *models.Factories,
 	factoryConfig *config.Factories,
 ) *UserHandler {
 	return &UserHandler{
-		repo:           repository,
+		users:          userssitory,
 		factoryService: factoryService,
 		factoryConfig:  factoryConfig,
 	}
@@ -50,7 +49,7 @@ func (h *UserHandler) Get(c *fiber.Ctx) error {
 			})
 	}
 
-	user, err := h.repo.Find(id)
+	user, err := h.users.Find(id)
 	if err != nil {
 		return c.Status(http.StatusNotFound).JSON(
 			response.ErrorResponse{
@@ -103,7 +102,7 @@ func (h *UserHandler) Create(c *fiber.Ctx) error {
 			})
 	}
 
-	item, err := h.repo.Create(d.Username)
+	item, err := h.users.Create(d.Username)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(
 			response.ErrorResponse{
@@ -139,7 +138,7 @@ func (h *UserHandler) Delete(c *fiber.Ctx) error {
 			})
 	}
 
-	_, err := h.repo.Delete(id)
+	_, err := h.users.Delete(id)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(
 			response.ErrorResponse{
@@ -153,9 +152,9 @@ func (h *UserHandler) Delete(c *fiber.Ctx) error {
 }
 
 func RegisterUserHandler(r fiber.Router, env *config.Env) {
-	repo := data.NewUserRepository(env)
-	fs := services.NewFactoryService(&env.Cfg.Factories)
-	h := NewUserHandler(repo, fs, &env.Cfg.Factories)
+	users := models.NewUsers(env)
+	fs := models.NewFactories(&env.Cfg.Factories)
+	h := NewUserHandler(users, fs, &env.Cfg.Factories)
 
 	rg := r.Group("/user")
 	rg.Get("/:id", h.Get)

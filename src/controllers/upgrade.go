@@ -6,20 +6,19 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	"github.com/chupe/og2-coding-challenge/config"
-	"github.com/chupe/og2-coding-challenge/data"
+	"github.com/chupe/og2-coding-challenge/models"
 	"github.com/chupe/og2-coding-challenge/response"
-	"github.com/chupe/og2-coding-challenge/services"
 	"github.com/gofiber/fiber/v2"
 )
 
 type UpgradeHandler struct {
-	repo           *data.UserRepository
-	factoryService *services.FactoryService
+	users          *models.Users
+	factoryService *models.Factories
 }
 
-func NewUpgradeHandler(repository *data.UserRepository, factoryService *services.FactoryService) *UpgradeHandler {
+func NewUpgradeHandler(users *models.Users, factoryService *models.Factories) *UpgradeHandler {
 	return &UpgradeHandler{
-		repo:           repository,
+		users:          users,
 		factoryService: factoryService,
 	}
 }
@@ -61,7 +60,7 @@ func (h *UpgradeHandler) UpgradeFactory(c *fiber.Ctx) error {
 			})
 	}
 
-	user, err := h.repo.FindByUsername(d.Username)
+	user, err := h.users.FindByUsername(d.Username)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(
 			response.ErrorResponse{
@@ -81,7 +80,7 @@ func (h *UpgradeHandler) UpgradeFactory(c *fiber.Ctx) error {
 			})
 	}
 
-	err = h.repo.Update(user)
+	err = h.users.Update(user)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(
 			response.ErrorResponse{
@@ -95,9 +94,9 @@ func (h *UpgradeHandler) UpgradeFactory(c *fiber.Ctx) error {
 }
 
 func RegisterUpgradeHandler(r fiber.Router, env *config.Env) {
-	repo := data.NewUserRepository(env)
-	fs := services.NewFactoryService(&env.Cfg.Factories)
-	h := NewUpgradeHandler(repo, fs)
+	users := models.NewUsers(env)
+	fs := models.NewFactories(&env.Cfg.Factories)
+	h := NewUpgradeHandler(users, fs)
 
 	r.Post("/upgrade", h.UpgradeFactory)
 }

@@ -1,38 +1,37 @@
-package services
+package models
 
 import (
 	"errors"
 	"time"
 
 	"github.com/chupe/og2-coding-challenge/config"
-	"github.com/chupe/og2-coding-challenge/models"
 )
 
-type FactoryService struct {
-	fc *config.Factories
+type Factories struct {
+	cfg *config.Factories
 }
 
-func NewFactoryService(fc *config.Factories) *FactoryService {
-	return &FactoryService{
-		fc: fc,
+func NewFactories(env *config.Factories) *Factories {
+	return &Factories{
+		cfg: env,
 	}
 }
 
-func (fs *FactoryService) GetConfig(f *models.Factory) ([]config.Level, error) {
+func (fs *Factories) GetConfig(f *Factory) ([]config.Level, error) {
 	var result []config.Level
 	switch string(f.Type) {
 	case "iron":
-		result = fs.fc.Iron
+		result = fs.cfg.Iron
 	case "copper":
-		result = fs.fc.Copper
+		result = fs.cfg.Copper
 	case "gold":
-		result = fs.fc.Gold
+		result = fs.cfg.Gold
 	}
 
 	return result, nil
 }
 
-func (fs *FactoryService) GetRate(f *models.Factory) (int, error) {
+func (fs *Factories) GetRate(f *Factory) (int, error) {
 	v, err := fs.GetConfig(f)
 	if err != nil {
 		return -1, err
@@ -40,7 +39,7 @@ func (fs *FactoryService) GetRate(f *models.Factory) (int, error) {
 	return v[f.GetLevel()-1].Production, nil
 }
 
-func (fs *FactoryService) OreProduced(f *models.Factory) (int, error) {
+func (fs *Factories) OreProduced(f *Factory) (int, error) {
 	lvlInfo, err := fs.GetConfig(f)
 	if err != nil {
 		return -1, err
@@ -62,7 +61,7 @@ func (fs *FactoryService) OreProduced(f *models.Factory) (int, error) {
 	return result, nil
 }
 
-func (fs *FactoryService) UpgradeFactory(user *models.User, factory string) (*models.User, error) {
+func (fs *Factories) UpgradeFactory(user *User, factory string) (*User, error) {
 	fac, err := user.GetFactory(factory)
 	if err != nil {
 		return nil, err
@@ -82,7 +81,7 @@ func (fs *FactoryService) UpgradeFactory(user *models.User, factory string) (*mo
 		return nil, errors.New("level information not available")
 	}
 
-	err = fs.deduceOres(user, models.Cost(fc[fac.GetLevel()-1].Cost))
+	err = fs.deduceOres(user, Cost(fc[fac.GetLevel()-1].Cost))
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +94,7 @@ func (fs *FactoryService) UpgradeFactory(user *models.User, factory string) (*mo
 	return user, nil
 }
 
-func (fs *FactoryService) deduceOres(user *models.User, cost models.Cost) error {
+func (fs *Factories) deduceOres(user *User, cost Cost) error {
 	user.IronSpending += cost.Iron
 	user.CopperSpending += cost.Copper
 	user.GoldSpending += cost.Gold

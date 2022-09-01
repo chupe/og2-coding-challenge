@@ -5,24 +5,23 @@ import (
 	"net/http"
 
 	"github.com/chupe/og2-coding-challenge/config"
-	"github.com/chupe/og2-coding-challenge/data"
+	"github.com/chupe/og2-coding-challenge/models"
 	"github.com/chupe/og2-coding-challenge/response"
-	"github.com/chupe/og2-coding-challenge/services"
 	"github.com/gofiber/fiber/v2"
 )
 
 type DashboardHandler struct {
-	repo *data.UserRepository
-	fs   *services.FactoryService
+	users *models.Users
+	fs    *models.Factories
 }
 
 func NewDashboardHandler(
-	repository *data.UserRepository,
-	factoryService *services.FactoryService,
+	users *models.Users,
+	factoryService *models.Factories,
 ) *DashboardHandler {
 	return &DashboardHandler{
-		repo: repository,
-		fs:   factoryService,
+		users: users,
+		fs:    factoryService,
 	}
 }
 
@@ -45,7 +44,7 @@ func (h *DashboardHandler) GetDashboard(c *fiber.Ctx) error {
 			})
 	}
 
-	user, err := h.repo.FindByUsername(username)
+	user, err := h.users.FindByUsername(username)
 	if err != nil {
 		return c.Status(http.StatusNotFound).JSON(
 			response.ErrorResponse{
@@ -113,9 +112,9 @@ func (h *DashboardHandler) GetDashboard(c *fiber.Ctx) error {
 }
 
 func RegisterDashboardHandler(r fiber.Router, env *config.Env) {
-	repo := data.NewUserRepository(env)
-	fs := services.NewFactoryService(&env.Cfg.Factories)
-	h := NewDashboardHandler(repo, fs)
+	users := models.NewUsers(env)
+	fs := models.NewFactories(&env.Cfg.Factories)
+	h := NewDashboardHandler(users, fs)
 
 	r.Get("/dashboard", h.GetDashboard)
 }
