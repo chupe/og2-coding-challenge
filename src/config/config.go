@@ -1,13 +1,39 @@
 package config
 
-import (
-	"github.com/joho/godotenv"
-)
+type Config struct {
+	DB           DB
+	MongoExpress MongoExpress
+	Factories    Factories
+}
 
-func Load() error {
-	err := godotenv.Load(".env")
-	if err != nil {
-		return err
-	}
-	return nil
+type DB struct {
+	Host     string
+	Port     int
+	User     string
+	Password string
+	Name     string
+}
+
+type MongoExpress struct {
+	User     string
+	Password string
+}
+
+type Factories struct {
+	Iron   []Level
+	Copper []Level
+	Gold   []Level
+}
+
+type Level struct {
+	Level           int
+	Production      int // per minute
+	UpgradeDuration int `json:"duration"` // duration in seconds
+	Cost            cost
+}
+
+type cost struct {
+	Iron   int
+	Copper int
+	Gold   int
 }

@@ -6,6 +6,10 @@ import (
 
 type HealthCheckHandler struct{}
 
+func NewHealthCheckHandler() *HealthCheckHandler {
+	return &HealthCheckHandler{}
+}
+
 // HealthCheck godoc
 // @Summary Check the status of the service
 // @ID check-health
@@ -14,10 +18,6 @@ type HealthCheckHandler struct{}
 // @Router /health [get]
 func (handler *HealthCheckHandler) HealthCheck(c *fiber.Ctx) error {
 	return c.SendString("OK")
-}
-
-func NewHealthCheckHandler() *HealthCheckHandler {
-	return &HealthCheckHandler{}
 }
 
 func RegisterHealthCheckHandler(router fiber.Router) {

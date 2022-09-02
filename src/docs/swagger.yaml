@@ -1,0 +1,231 @@
+basePath: /
+consumes:
+- application/json
+definitions:
+  CreateUserBody:
+    properties:
+      username:
+        description: Full url
+        example: exampleUsername
+        type: string
+    required:
+    - username
+    type: object
+  ErrorResponse:
+    properties:
+      error:
+        description: Actual error thrown
+        example: No Users found in the DB
+        type: string
+      message:
+        description: User friendly message
+        example: Review input
+        type: string
+      status:
+        description: Http status
+        example: 404
+        type: integer
+    type: object
+  Factory:
+    properties:
+      level:
+        description: Factory level
+        example: 3
+        type: integer
+      ratePerMinute:
+        description: Ore production rate per minute
+        example: 20
+        type: integer
+      timeToFinish:
+        description: Time of finishing the latest update
+        example: "2021-05-25T00:00:00.0Z"
+        format: date-time
+        type: string
+      type:
+        description: Factory type
+        example: iron
+        type: string
+      underConstruction:
+        description: Factory is under construction
+        example: false
+        type: boolean
+    required:
+    - type
+    type: object
+  UpgradeFactoryBody:
+    properties:
+      factory:
+        example: exampleFactory
+        type: string
+      username:
+        description: Full url
+        example: exampleUsername
+        type: string
+    required:
+    - factory
+    - username
+    type: object
+  UserResponse:
+    properties:
+      copper:
+        description: Number of times the redirection took place
+        example: 42
+        type: integer
+      created:
+        description: Date the User was stored
+        example: "2021-05-25T00:00:00.0Z"
+        format: date-time
+        type: string
+      factories:
+        items:
+          $ref: '#/definitions/Factory'
+        type: array
+      gold:
+        example: 42
+        type: integer
+      id:
+        description: ObjectID represented as a string
+        example: 62fbfaa5f79e97a5501979f3
+        type: string
+      iron:
+        description: Short alphanumeric 6 letter code that is used for redirection
+        example: 42
+        type: integer
+      username:
+        description: Full URL
+        example: example123
+        type: string
+    required:
+    - username
+    type: object
+host: localhost:5000
+info:
+  contact:
+    email: chupe@chupe.ba
+    name: Adnan
+  description: A coding challange with the task of finishing it in under 4 hours
+  license:
+    name: GPLv3
+    url: https://www.gnu.org/licenses/gpl-3.0.html
+  termsOfService: http://chupe.ba/terms/
+  title: OG2 Coding Challenge
+  version: "0.1"
+paths:
+  /dashboard:
+    get:
+      operationId: get-dashboard
+      parameters:
+      - description: username
+        in: query
+        name: username
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/UserResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Return dashboard for username
+      tags:
+      - dashboard
+  /health:
+    get:
+      operationId: check-health
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Check the status of the service
+      tags:
+      - Health
+  /upgrade:
+    post:
+      operationId: upgrade-factory
+      parameters:
+      - description: username and factory type
+        in: body
+        name: UpgradeFactoryBody
+        required: true
+        schema:
+          $ref: '#/definitions/UpgradeFactoryBody'
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Upgrade factory type for a user
+      tags:
+      - factory
+  /user:
+    post:
+      operationId: create-user
+      parameters:
+      - description: json containing username
+        in: body
+        name: createUser
+        required: true
+        schema:
+          $ref: '#/definitions/CreateUserBody'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/UserResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Create new user
+      tags:
+      - user
+  /user/{id}:
+    delete:
+      operationId: delete-user
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Delete user by id
+      tags:
+      - user
+    get:
+      operationId: get-user
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/UserResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Get user by id
+      tags:
+      - user
+produces:
+- application/json
+schemes:
+- http
+swagger: "2.0"

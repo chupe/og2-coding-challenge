@@ -1,15 +1,33 @@
-# Go interview (asynchronous)
+# OG2 Coding Challenge
 
-<aside>
-💡 A minimalistic version of this project can be built within the time you have, but a well-rounded one requires a lot of work. We understand you do not have enough time to build something great, so don’t worry and do your best. Good luck!
+A few notes about my implementation. The challenge originally provided 4 hours for implementing. The version that can be seen in this branch has been refactored further after initial publish. You can find the challenge itself below.
 
-If something happens and you can’t get a working version, please still send us your work. We know problems happen, especially during stressful times. We’ll take that into account when reviewing your work.
+## Idea
+The idea behind my implementation is to store information about upgrades of factories as an array of time.Time values which is the time the level has been reached.
+From this information the amount of ores that are produced since the user was created can be calculated.
+If an upgrade is undergoing can be determined by checking the array values - if there is a value that is in the future it means the upgrade is underway. If all values are in the past it means nothing is being upgraded at the moment.
 
-</aside>
+For the ores I am persisting only the spending of each ore. When the amount produced by the factory is calculated this amount is subtracted which gives the total amount of each ore for the user.
+
+## Implementation
+The app is structured in two containers, one for the app itself and one for the DB. 
+
+MongoDB provides persistence, and I've used it so I don't have to handle migrations. Additionally, I've touched upon it before. Also, I had boilerplate code to use and departing from Mongo didn't provide enough value. If working from scratch key-value store would be preferable.
+
+For debugging purposes Mongo Express is also part of the app, deployed as a separate container and accessible on http://localhost:8081.
+
+To attach debugger connect it on port 2345. If you are running on VSCode the debugger configuration is preconfigured, just hit F5 when the app is up.
+
+API endpoints are exposed on http://localhost:5000 and the documentation is exposed via Swagger on http://localhost:5000/swagger/index.html.
+
+To start the app 'cd' to /og2-coding-challenge/src folder and run 'docker compose up'.
+
+
+# The app requirements
 
 You’ll be building the base for a game that we’ll call OG2. In OG2, the player has three resources (iron, copper, and gold) that they mine through factories. The goal is to increase mining capacity by improving the factories with their extracted resources.
 
-## **Ressources and factories**
+## **Resources and factories**
 
 You have 3 resources: Iron, copper, and gold. You also have three types of factories: Iron, copper, and gold factories (shocking, I know). Factories mine a certain amount of resources per second. They start at level 1 and the user can upgrade them by spending resources. Upgrades increase the resources mined per second. However, upgrading the factories is not an instant process. It takes a certain number of seconds based on the level.
 

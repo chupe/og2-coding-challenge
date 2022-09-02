@@ -1,23 +1,55 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 
-	"github.com/chupe/og2-coding-challenge/data"
+	"github.com/chupe/og2-coding-challenge/config"
+	"github.com/chupe/og2-coding-challenge/models"
+
 	"github.com/chupe/og2-coding-challenge/response"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserHandler struct {
-	repository *data.UserRepository
+	users          *models.Users
+	factoryService *models.Factories
+	factoryConfig  *config.Factories
 }
 
-func (handler *UserHandler) Get(c *fiber.Ctx) error {
+func NewUserHandler(
+	userssitory *models.Users,
+	factoryService *models.Factories,
+	factoryConfig *config.Factories,
+) *UserHandler {
+	return &UserHandler{
+		users:          userssitory,
+		factoryService: factoryService,
+		factoryConfig:  factoryConfig,
+	}
+}
+
+// GetUser godoc
+// @Summary Get user by id
+// @ID get-user
+// @Tags user
+// @Param	id	path	string	true	"user id"
+// @Success 200 {object} response.UserResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Router /user/{id} [get]
+func (h *UserHandler) Get(c *fiber.Ctx) error {
 	id := c.Params("id")
-	user, err := handler.repository.Find(id)
+	if id == "" {
+		return c.Status(http.StatusNotFound).JSON(
+			response.ErrorResponse{
+				Status:  http.StatusNotFound,
+				Message: "Id must be provided",
+				Error:   errors.New("id must be provided").Error(),
+			})
+	}
 
+	user, err := h.users.Find(id)
 	if err != nil {
 		return c.Status(http.StatusNotFound).JSON(
 			response.ErrorResponse{
@@ -30,70 +62,7 @@ func (handler *UserHandler) Get(c *fiber.Ctx) error {
 	return c.JSON(response.UserResponse{
 		ID:       user.ID.String(),
 		Username: user.Username,
-		Iron:     user.GetIronOre(),
-		Copper:   user.GetCopperOre(),
-		Gold:     user.GetGoldOre(),
 		Created:  user.Created,
-	})
-}
-
-type getUser struct {
-	// Full url
-	Username string `json:"username" validate:"required,alphanum" example:"exampleUsername"`
-} // @name CreateUserBody
-
-func (handler *UserHandler) GetDashboard(c *fiber.Ctx) error {
-	d := new(getUser)
-	err := c.BodyParser(d)
-	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(
-			response.ErrorResponse{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid JSON",
-				Error:   err.Error(),
-			})
-	}
-
-	user, err := handler.repository.FindByUsername(d.Username)
-	if err != nil {
-		return c.Status(http.StatusNotFound).JSON(
-			response.ErrorResponse{
-				Status:  http.StatusNotFound,
-				Message: "User not found",
-				Error:   err.Error(),
-			})
-	}
-
-	return c.JSON(response.UserResponse{
-		ID:       user.ID.String(),
-		Username: user.Username,
-		Iron:     user.GetIronOre(),
-		Copper:   user.GetCopperOre(),
-		Gold:     user.GetGoldOre(),
-		Factories: []response.Factories{
-			{
-				Type:              string(user.IronFactory.Type),
-				Level:             user.IronFactory.GetLevel(),
-				Rate:              user.IronFactory.GetRate(),
-				UnderConstruction: user.IronFactory.UnderConstruction(),
-				TimeToFinish:      user.IronFactory.TimeToUpgrade(),
-			},
-			{
-				Type:              string(user.CopperFactory.Type),
-				Level:             user.CopperFactory.GetLevel(),
-				Rate:              user.CopperFactory.GetRate(),
-				UnderConstruction: user.CopperFactory.UnderConstruction(),
-				TimeToFinish:      user.CopperFactory.TimeToUpgrade(),
-			},
-			{
-				Type:              string(user.GoldFactory.Type),
-				Level:             user.GoldFactory.GetLevel(),
-				Rate:              user.GoldFactory.GetRate(),
-				UnderConstruction: user.GoldFactory.UnderConstruction(),
-				TimeToFinish:      user.GoldFactory.TimeToUpgrade(),
-			},
-		},
-		Created: user.Created,
 	})
 }
 
@@ -102,7 +71,15 @@ type createUser struct {
 	Username string `json:"username" validate:"required,alphanum" example:"exampleUsername"`
 } // @name CreateUserBody
 
-func (handler *UserHandler) Create(c *fiber.Ctx) error {
+// CreateUser godoc
+// @Summary Create new user
+// @ID create-user
+// @Tags user
+// @Param	createUser	body	createUser	true	"json containing username"
+// @Success 200 {object} response.UserResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Router /user [post]
+func (h *UserHandler) Create(c *fiber.Ctx) error {
 	v := validator.New()
 	d := new(createUser)
 	err := c.BodyParser(d)
@@ -125,7 +102,7 @@ func (handler *UserHandler) Create(c *fiber.Ctx) error {
 			})
 	}
 
-	item, err := handler.repository.Create(d.Username)
+	item, err := h.users.Create(d.Username)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(
 			response.ErrorResponse{
@@ -142,37 +119,45 @@ func (handler *UserHandler) Create(c *fiber.Ctx) error {
 	})
 }
 
-func (handler *UserHandler) UpgradeFactory(c *fiber.Ctx) error {
-	fac := c.Params("factory")
-	username := c.Params("username")
-	user, err := handler.repository.UpgradeFactory(username, fac)
+// DeleteUser godoc
+// @Summary Delete user by id
+// @ID delete-user
+// @Tags user
+// @Param	id	path	string	true	"user id"
+// @Success 204
+// @Failure 404 {object} response.ErrorResponse
+// @Router /user/{id} [delete]
+func (h *UserHandler) Delete(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(http.StatusNotFound).JSON(
+			response.ErrorResponse{
+				Status:  http.StatusNotFound,
+				Message: "Id must be provided",
+				Error:   errors.New("id must be provided").Error(),
+			})
+	}
+
+	_, err := h.users.Delete(id)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(
 			response.ErrorResponse{
 				Status:  http.StatusInternalServerError,
-				Message: "Failed to upgrade",
+				Message: "Failed to save the User",
 				Error:   err.Error(),
 			})
 	}
 
-	return c.JSON(response.UserResponse{
-		ID:       user.ID.Hex(),
-		Username: user.Username,
-	})
+	return c.SendStatus(http.StatusNoContent)
 }
 
-func NewUserHandler(repository *data.UserRepository) *UserHandler {
-	return &UserHandler{
-		repository: repository,
-	}
-}
+func RegisterUserHandler(r fiber.Router, env *config.Env) {
+	users := models.NewUsers(env)
+	fs := models.NewFactories(&env.Cfg.Factories)
+	h := NewUserHandler(users, fs, &env.Cfg.Factories)
 
-func RegisterUserHandler(router fiber.Router, database *mongo.Client) {
-	repository := data.NewUserRepository(database)
-	userHandler := NewUserHandler(repository)
-
-	UserRouter := router.Group("/user")
-	UserRouter.Get("/:id", userHandler.Get)
-	UserRouter.Post("/", userHandler.Create)
-	UserRouter.Post("/dashboard", userHandler.GetDashboard)
+	rg := r.Group("/user")
+	rg.Get("/:id", h.Get)
+	rg.Post("/", h.Create)
+	rg.Delete("/:id", h.Delete)
 }
